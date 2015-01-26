@@ -144,9 +144,15 @@ THREE.CatmullRomCurve3 = ( function() {
 			if ( dt0 < 1e-4 ) dt0 = dt1;
 			if ( dt2 < 1e-4 ) dt2 = dt1;
 
-			px.initNonuniformCatmullRom( p0.x, p1.x, p2.x, p3.x, dt0, dt1, dt2 );
-			py.initNonuniformCatmullRom( p0.y, p1.y, p2.y, p3.y, dt0, dt1, dt2 );
-			pz.initNonuniformCatmullRom( p0.z, p1.z, p2.z, p3.z, dt0, dt1, dt2 );
+			if (this.centripetal) {
+				px.initNonuniformCatmullRom( p0.x, p1.x, p2.x, p3.x, dt0, dt1, dt2 );
+				py.initNonuniformCatmullRom( p0.y, p1.y, p2.y, p3.y, dt0, dt1, dt2 );
+				pz.initNonuniformCatmullRom( p0.z, p1.z, p2.z, p3.z, dt0, dt1, dt2 );
+			} else {
+				px.initCatmullRom( p0.x, p1.x, p2.x, p3.x );
+				py.initCatmullRom( p0.y, p1.y, p2.y, p3.y );
+				pz.initCatmullRom( p0.z, p1.z, p2.z, p3.z );
+			}
 
 			var v = new THREE.Vector3(
 				px.calc( weight ),

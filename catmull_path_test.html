@@ -27,6 +27,42 @@
 		var points = [];
 		var curve = new THREE.CatmullRomCurve3(points);
 
+
+		THREE.SplineCurve3 = THREE.Curve.create(
+
+			function ( points /* array of Vector3 */) {
+
+				this.points = ( points == undefined ) ? [] : points;
+
+			},
+
+			function ( t ) {
+
+				var points = this.points;
+				var point = ( points.length - 1 ) * t;
+
+				var intPoint = Math.floor( point );
+				var weight = point - intPoint;
+
+				var point0 = points[ intPoint == 0 ? intPoint : intPoint - 1 ];
+				var point1 = points[ intPoint ];
+				var point2 = points[ intPoint > points.length - 2 ? points.length - 1 : intPoint + 1 ];
+				var point3 = points[ intPoint > points.length - 3 ? points.length - 1 : intPoint + 2 ];
+
+				var vector = new THREE.Vector3();
+
+				vector.x = THREE.Curve.Utils.interpolate( point0.x, point1.x, point2.x, point3.x, weight );
+				vector.y = THREE.Curve.Utils.interpolate( point0.y, point1.y, point2.y, point3.y, weight );
+				vector.z = THREE.Curve.Utils.interpolate( point0.z, point1.z, point2.z, point3.z, weight );
+
+				return vector;
+
+			}
+
+		);
+
+		var curve2 = new THREE.SplineCurve3(points);
+
 		for (i=0; i < 4; i++) {
 			points.push( new THREE.Vector3(Math.random() * canvas.width, Math.random() * canvas.width, 0))
 		}
@@ -92,7 +128,7 @@
 
 			requestAnimationFrame(draw);
 
-			if (needRedraw) {
+			// if (needRedraw) {
 
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 				
@@ -108,14 +144,14 @@
 
 				ctx.beginPath();
 				for (var i=0;i<=DIVISONS;i++) {
-					point = curve.getPoint(i / DIVISONS);
+					point = window.spline ? curve2.getPoint(i / DIVISONS) : curve.getPoint(i / DIVISONS);
 					if (i==0) ctx.moveTo(point.x, point.y);
 					else ctx.lineTo(point.x, point.y);
 				}
 
 				ctx.stroke();
 
-			}
+			// }
 
 			needRedraw = false;
 		}
