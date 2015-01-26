@@ -1,0 +1,127 @@
+<html>
+<body>
+	<div id="info"></div>
+	<style>
+	canvas {
+		border: 1px solid #ddd;
+	}
+	</style>
+	<script>THREE = {}</script>
+	<script src="Vector3.js"></script>
+	<script src="Curve.js"></script>
+	<script src="CatmullRomCurve3.js"></script>
+	<script>
+
+		var info = document.querySelector('#info');
+		var canvas = document.createElement('canvas');
+		canvas.width = 1024;
+		canvas.height = 1024;
+		var DIVISONS = 200;
+
+		var ctx = canvas.getContext('2d');
+
+		document.body.appendChild(canvas);
+
+		var needRedraw = true;
+
+		var points = [];
+		var curve = new THREE.CatmullRomCurve3(points);
+
+		for (i=0; i < 4; i++) {
+			points.push( new THREE.Vector3(Math.random() * canvas.width, Math.random() * canvas.width, 0))
+		}
+
+		document.addEventListener('mousemove', function(e) {
+			info.innerHTML = e.offsetX + ',' + e.offsetY;
+
+			if (mouseOn) {
+				mouseOn.x = e.offsetX;
+				mouseOn.y = e.offsetY;
+			} else {
+				if(detectHit(e.offsetX, e.offsetY)) {
+					canvas.style.cursor = 'pointer';
+				} else {
+					canvas.style.cursor = 'default';
+				}
+			}
+
+			needRedraw = true;
+		
+		});
+
+		var mouseOn = null;
+
+		document.addEventListener('mousedown', function(e) {
+
+			var point = detectHit(e.offsetX, e.offsetY);
+
+			// TODO insert new points
+
+			mouseOn = point;
+
+			needRedraw = true;
+
+		});
+
+		document.addEventListener('mouseup', function(e) {
+			if (!mouseOn) return;
+			mouseOn.x = e.offsetX;
+			mouseOn.y = e.offsetY;
+			mouseOn = null;
+			needRedraw = true;
+		});
+
+		function drawCircle(x, y, size) {
+			ctx.beginPath();
+			ctx.arc(x, y, size, 0, Math.PI * 2);
+		}
+
+		function detectHit(x, y) {
+			for (var i=0;i<points.length;i++) {
+				point = points[i];
+				drawCircle(point.x, point.y, 10);
+				if (ctx.isPointInPath(x, y)) {
+					return point;
+				}
+			}
+
+			return null;
+		}		
+
+		function draw() {
+
+			requestAnimationFrame(draw);
+
+			if (needRedraw) {
+
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				
+				ctx.fillStyle = '#aaa';
+
+				for (var i=0;i<points.length;i++) {
+					point = points[i];
+					drawCircle(point.x, point.y, 10);
+					ctx.fill();
+				}
+
+				ctx.lineWidth = 3;
+
+				ctx.beginPath();
+				for (var i=0;i<=DIVISONS;i++) {
+					point = curve.getPoint(i / DIVISONS);
+					if (i==0) ctx.moveTo(point.x, point.y);
+					else ctx.lineTo(point.x, point.y);
+				}
+
+				ctx.stroke();
+
+			}
+
+			needRedraw = false;
+		}
+
+		draw();
+
+	</script>
+</body>
+</html>
