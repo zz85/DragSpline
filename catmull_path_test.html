@@ -10,6 +10,8 @@
 	<script src="Vector3.js"></script>
 	<script src="Curve.js"></script>
 	<script src="CatmullRomCurve3.js"></script>
+	<script src="SplineCurve3.js"></script>
+	
 	<script>
 
 		var info = document.querySelector('#info');
@@ -26,40 +28,6 @@
 
 		var points = [];
 		var curve = new THREE.CatmullRomCurve3(points);
-
-
-		THREE.SplineCurve3 = THREE.Curve.create(
-
-			function ( points /* array of Vector3 */) {
-
-				this.points = ( points == undefined ) ? [] : points;
-
-			},
-
-			function ( t ) {
-
-				var points = this.points;
-				var point = ( points.length - 1 ) * t;
-
-				var intPoint = Math.floor( point );
-				var weight = point - intPoint;
-
-				var point0 = points[ intPoint == 0 ? intPoint : intPoint - 1 ];
-				var point1 = points[ intPoint ];
-				var point2 = points[ intPoint > points.length - 2 ? points.length - 1 : intPoint + 1 ];
-				var point3 = points[ intPoint > points.length - 3 ? points.length - 1 : intPoint + 2 ];
-
-				var vector = new THREE.Vector3();
-
-				vector.x = THREE.Curve.Utils.interpolate( point0.x, point1.x, point2.x, point3.x, weight );
-				vector.y = THREE.Curve.Utils.interpolate( point0.y, point1.y, point2.y, point3.y, weight );
-				vector.z = THREE.Curve.Utils.interpolate( point0.z, point1.z, point2.z, point3.z, weight );
-
-				return vector;
-
-			}
-
-		);
 
 		var curve2 = new THREE.SplineCurve3(points);
 
@@ -140,16 +108,41 @@
 					ctx.fill();
 				}
 
-				ctx.lineWidth = 3;
-
+				// original spline implementation
+				ctx.strokeStyle = 'red';
+				ctx.lineWidth = 2;
 				ctx.beginPath();
 				for (var i=0;i<=DIVISONS;i++) {
-					point = window.spline ? curve2.getPoint(i / DIVISONS) : curve.getPoint(i / DIVISONS);
+					point = curve2.getPoint(i / DIVISONS);
 					if (i==0) ctx.moveTo(point.x, point.y);
 					else ctx.lineTo(point.x, point.y);
 				}
-
 				ctx.stroke();
+
+				// new catmull implementation
+				ctx.strokeStyle = 'green';
+				ctx.lineWidth = 3;
+				ctx.beginPath();
+				curve.centripetal = false;
+				for (var i=0;i<=DIVISONS;i++) {
+					point = curve.getPoint(i / DIVISONS);
+					if (i==0) ctx.moveTo(point.x, point.y);
+					else ctx.lineTo(point.x, point.y);
+				}
+				ctx.stroke();
+
+				ctx.strokeStyle = 'purple';
+				ctx.lineWidth = 3;
+				ctx.beginPath();
+				curve.centripetal = true;
+				for (var i=0;i<=DIVISONS;i++) {
+					point = curve.getPoint(i / DIVISONS);
+					if (i==0) ctx.moveTo(point.x, point.y);
+					else ctx.lineTo(point.x, point.y);
+				}
+				ctx.stroke();
+
+
 
 			// }
 
