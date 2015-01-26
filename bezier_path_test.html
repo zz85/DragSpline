@@ -1,0 +1,267 @@
+
+<html>
+<body>
+	<div id="info"></div>
+	<script>
+
+		var info = document.querySelector('#info');
+		var canvas = document.createElement('canvas');
+		canvas.width = 1024;
+		canvas.height = 1024;
+		var ctx = canvas.getContext('2d');
+
+		document.body.appendChild(canvas);
+
+		var needRedraw = true;
+
+		var points = [];
+		var lines = [];
+		var helperPoints = [];
+
+		document.addEventListener('mousemove', function(e) {
+			info.innerHTML = e.offsetX + ',' + e.offsetY;
+
+			if (mouseOn) {
+				mouseOn.x = e.offsetX;
+				mouseOn.y = e.offsetY;
+
+				line = mouseOn.line;
+				if (line) {
+					var otherLine;
+					if (line.ca == mouseOn) {
+						otherLine = line.getPrevLine();
+						if (otherLine) {
+							var refPt = otherLine.b;
+							otherLine.cb.x = 2 * refPt.x - mouseOn.x;
+							otherLine.cb.y = 2 * refPt.y - mouseOn.y;
+						}
+					} else {
+						otherLine = line.getNextLine();
+						if (otherLine) {
+							var refPt = otherLine.a;
+							otherLine.ca.x = 2 * refPt.x - mouseOn.x;
+							otherLine.ca.y = 2 * refPt.y - mouseOn.y;
+						}
+					}
+				}
+
+				var line1 = mouseOn.line1, line2 = mouseOn.line2;
+
+				if (line1 && line2) {
+					line1.cb.x = mouseOn.x + line1.cb.ox - mouseOn.ox;
+					line1.cb.y = mouseOn.y + line1.cb.oy - mouseOn.oy;
+
+					line2.ca.x = mouseOn.x + line2.ca.ox - mouseOn.ox;
+					line2.ca.y = mouseOn.y + line2.ca.oy - mouseOn.oy;
+				}
+
+			}
+
+			needRedraw = true;
+		}, false);
+
+
+		var mouseOn = null;
+
+		function detectLine(x, y) {
+			if (lines.length<1)return;
+			ctx.lineWidth = 8;
+
+			ctx.moveTo(lines[0].a.x, lines[0].a.y);
+			for (var i=0;i<lines.length;i++) {
+				line = lines[i];
+				ctx.beginPath();
+				line.helper();
+				// ctx.closePath();
+				if (ctx.isPointInStroke(x, y)) {
+					console.log('found',i);
+					return line;
+				}
+			}
+
+			return null;
+		}
+
+		document.addEventListener('mousedown', function(e) {
+
+			if (detectLine(e.offsetX, e.offsetY)) return;
+
+			var point = detectHit(e.offsetX, e.offsetY);
+			if (!point) {
+				point = new Point(e.offsetX, e.offsetY);
+				points.push(point);
+
+				if (points.length > 1) {
+					lines.push(new Line(
+						points[points.length-2],
+						points[points.length-1]
+						));
+				}
+			}
+
+			mouseOn = point;
+
+			var line1 = mouseOn.line1, line2 = mouseOn.line2;
+
+			if (line1 && line2) {
+				mouseOn.ox = mouseOn.x;
+				mouseOn.oy = mouseOn.y;
+				line1.cb.ox = line1.cb.x;
+				line1.cb.oy = line1.cb.y;
+				line2.ca.ox = line2.ca.x;
+				line2.ca.oy = line2.ca.y;
+
+			}
+
+			needRedraw = true;
+		}, false);
+
+		document.addEventListener('mouseup', function(e) {
+			if (!mouseOn) return;
+			mouseOn.x = e.offsetX;
+			mouseOn.y = e.offsetY;
+			mouseOn = null;
+			needRedraw = true;
+		}, false);
+
+
+		// Create constrains
+
+		function Point(x, y, size) {
+			this.x = x || 0;
+			this.y = y || 0;
+			size = size || 8;
+			this.visible = false;
+			var me = this;
+
+			this.helper = function() {
+				// ctx.moveTo(me.x, me.y);
+				ctx.beginPath();
+				ctx.arc(me.x, me.y, size, 0, Math.PI * 2);
+				ctx.closePath();
+			}
+		}
+
+		function Line(a, b) {
+			this.a = a;
+			this.b = b;
+
+			this.a.line2 = this;
+			this.b.line1 = this;
+
+			var ca = new Point(0, 0, 7);
+			ca.x = (b.x - a.x) / 4 + a.x;
+			ca.y = (b.y - a.y) / 4 + a.y;
+			ca.line = this;
+			this.ca = ca;
+
+
+			var cb = new Point(0, 0, 7);
+			cb.x = b.x - (b.x - a.x) / 4;
+			cb.y = b.y - (b.y - a.y) / 4;
+			cb.line = this;
+			this.cb = cb;
+
+			var me = this;
+
+			helperPoints.push(ca);
+			helperPoints.push(cb);
+
+			this.helper = function() {
+				ctx.bezierCurveTo(me.ca.x, me.ca.y, me.cb.x, me.cb.y, me.b.x, me.b.y);
+			}
+
+			this.getNextLine = function() {
+				var i = lines.indexOf(me);
+				return lines[i+1];
+			}
+			this.getPrevLine = function() {
+				var i = lines.indexOf(me);
+				return lines[i-1];
+			}
+
+		}
+
+		function Constrain(a, b) {
+			this.a = a;
+			this.b = b;
+			this.visible = false;
+		}
+
+		function draw() {
+
+			if (needRedraw) {
+
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.lineWidth = 2;
+				for (var i=0;i<points.length;i++) {
+					point = points[i];
+					point.helper();
+					ctx.stroke();
+				}
+
+				if (lines.length > 0) {
+					ctx.lineWidth = 8;
+					ctx.beginPath();
+					ctx.moveTo(lines[0].a.x, lines[0].a.y);
+					for (var i=0;i<lines.length;i++) {
+						line = lines[i];
+						line.helper();
+					}
+					ctx.closePath();
+					ctx.stroke();
+
+					ctx.lineWidth = 1.5;
+					ctx.beginPath();
+					for (var i=0;i<lines.length;i++) {
+						line = lines[i];
+						ctx.moveTo(line.a.x, line.a.y);
+						ctx.lineTo(line.ca.x, line.ca.y);
+						ctx.moveTo(line.b.x, line.b.y);
+						ctx.lineTo(line.cb.x, line.cb.y);
+					}
+					ctx.stroke();
+				}
+
+				ctx.lineWidth = 1;
+				for (var i=0;i<helperPoints.length;i++) {
+					point = helperPoints[i];
+					point.helper();
+					ctx.stroke();
+				}
+
+
+				// ctx.beginPath();
+				// ctx.closePath();
+				// ctx.stroke();
+			}
+
+			needRedraw = false;
+
+			setTimeout(draw, 50);
+		}
+
+		function detectHitFrom(x, y, points) {
+			for (var i=0;i<points.length;i++) {
+				point = points[i];
+				point.helper();
+				if (ctx.isPointInPath(x, y)) {
+					return point;
+				}
+			}
+
+			return null;
+		}
+
+		function detectHit(x, y) {
+			point = detectHitFrom(x, y, points);
+			if (point) return point;
+			point = detectHitFrom(x, y, helperPoints);
+			if (point) return point;
+		}
+
+		draw();
+
+	</script>
+</body>
+</html>
