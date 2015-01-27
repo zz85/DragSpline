@@ -64,9 +64,8 @@ THREE.CatmullRomCurve3 = ( function() {
 	};
 
 	// standard Catmull-Rom spline: interpolate between x1 and x2 with previous/following points x1/x4
-	CubicPoly.prototype.initCatmullRom = function( x0, x1, x2, x3 ) {
-		// Catmull-Rom with tension 0.5
-		this.init( x1, x2, 0.5 * ( x2 - x0 ), 0.5 * ( x3 - x1 ) );
+	CubicPoly.prototype.initCatmullRom = function( x0, x1, x2, x3, tension ) {
+		this.init( x1, x2, tension * ( x2 - x0 ), tension * ( x3 - x1 ) );
 	};
 
 	CubicPoly.prototype.calc = function( t ) {
@@ -133,25 +132,28 @@ THREE.CatmullRomCurve3 = ( function() {
 
 			}
 
-			// init Centripetal Catmull-Rom
-
-			var dt0 = Math.pow( p0.distanceToSquared( p1 ), 0.25 );
-			var dt1 = Math.pow( p1.distanceToSquared( p2 ), 0.25 );
-			var dt2 = Math.pow( p2.distanceToSquared( p3 ), 0.25 );
-
-			// safety check for repeated points
-			if ( dt1 < 1e-4 ) dt1 = 1.0;
-			if ( dt0 < 1e-4 ) dt0 = dt1;
-			if ( dt2 < 1e-4 ) dt2 = dt1;
-
 			if (this.centripetal) {
+ 
+				// init Centripetal / Chordal Catmull-Rom
+				var pow = this.chordal ? 0.5 : 0.25;
+				var dt0 = Math.pow( p0.distanceToSquared( p1 ), pow );
+				var dt1 = Math.pow( p1.distanceToSquared( p2 ), pow );
+				var dt2 = Math.pow( p2.distanceToSquared( p3 ), pow );
+
+				// safety check for repeated points
+				if ( dt1 < 1e-4 ) dt1 = 1.0;
+				if ( dt0 < 1e-4 ) dt0 = dt1;
+				if ( dt2 < 1e-4 ) dt2 = dt1;
+
 				px.initNonuniformCatmullRom( p0.x, p1.x, p2.x, p3.x, dt0, dt1, dt2 );
 				py.initNonuniformCatmullRom( p0.y, p1.y, p2.y, p3.y, dt0, dt1, dt2 );
 				pz.initNonuniformCatmullRom( p0.z, p1.z, p2.z, p3.z, dt0, dt1, dt2 );
+
 			} else {
-				px.initCatmullRom( p0.x, p1.x, p2.x, p3.x );
-				py.initCatmullRom( p0.y, p1.y, p2.y, p3.y );
-				pz.initCatmullRom( p0.z, p1.z, p2.z, p3.z );
+				var tension = this.tension !== undefined ? this.tension : 0.5;
+				px.initCatmullRom( p0.x, p1.x, p2.x, p3.x, tension );
+				py.initCatmullRom( p0.y, p1.y, p2.y, p3.y, tension );
+				pz.initCatmullRom( p0.z, p1.z, p2.z, p3.z, tension );
 			}
 
 			var v = new THREE.Vector3(

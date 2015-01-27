@@ -1,5 +1,12 @@
 <html>
 <body>
+	<div>
+		<input type="checkbox" id="spline" /> SplineCurve<br />
+		<input type="checkbox" id="uniform" checked /> <label for="uniform">Uniform Catmull-rom</label>  <input type="range" id="tension" min=0 max=1 step=0.01 value=0.5 /> <span id="tension_value"/></span> <br />
+		<input type="checkbox" id="centripetal" /> Centripetal Catmull-rom<br />
+		<input type="checkbox" id="chordal" /> Chordal Catmull-rom<br />
+
+	</div>
 	<div id="info"></div>
 	<style>
 	canvas {
@@ -108,39 +115,61 @@
 					ctx.fill();
 				}
 
-				// original spline implementation
-				ctx.strokeStyle = 'red';
-				ctx.lineWidth = 2;
-				ctx.beginPath();
-				for (var i=0;i<=DIVISONS;i++) {
-					point = curve2.getPoint(i / DIVISONS);
-					if (i==0) ctx.moveTo(point.x, point.y);
-					else ctx.lineTo(point.x, point.y);
+				if (spline.checked) {
+					// original spline implementation
+					ctx.strokeStyle = 'red';
+					ctx.lineWidth = 2;
+					ctx.beginPath();
+					for (var i=0;i<=DIVISONS;i++) {
+						point = curve2.getPoint(i / DIVISONS);
+						if (i==0) ctx.moveTo(point.x, point.y);
+						else ctx.lineTo(point.x, point.y);
+					}
+					ctx.stroke();
 				}
-				ctx.stroke();
 
-				// new catmull implementation
-				ctx.strokeStyle = 'green';
-				ctx.lineWidth = 3;
-				ctx.beginPath();
-				curve.centripetal = false;
-				for (var i=0;i<=DIVISONS;i++) {
-					point = curve.getPoint(i / DIVISONS);
-					if (i==0) ctx.moveTo(point.x, point.y);
-					else ctx.lineTo(point.x, point.y);
+				if (uniform.checked) {
+					// new catmull implementation
+					ctx.strokeStyle = 'green';
+					ctx.lineWidth = 3;
+					ctx.beginPath();
+					curve.centripetal = false;
+					tension_value.textContent = curve.tension = tension.value;
+					for (var i=0;i<=DIVISONS;i++) {
+						point = curve.getPoint(i / DIVISONS);
+						if (i==0) ctx.moveTo(point.x, point.y);
+						else ctx.lineTo(point.x, point.y);
+					}
+					ctx.stroke();
 				}
-				ctx.stroke();
 
-				ctx.strokeStyle = 'purple';
-				ctx.lineWidth = 3;
-				ctx.beginPath();
-				curve.centripetal = true;
-				for (var i=0;i<=DIVISONS;i++) {
-					point = curve.getPoint(i / DIVISONS);
-					if (i==0) ctx.moveTo(point.x, point.y);
-					else ctx.lineTo(point.x, point.y);
+				if (centripetal.checked) {
+					ctx.strokeStyle = 'purple';
+					ctx.lineWidth = 3;
+					ctx.beginPath();
+					curve.centripetal = true;
+					curve.chordal = false;
+					for (var i=0;i<=DIVISONS;i++) {
+						point = curve.getPoint(i / DIVISONS);
+						if (i==0) ctx.moveTo(point.x, point.y);
+						else ctx.lineTo(point.x, point.y);
+					}
+					ctx.stroke();
 				}
-				ctx.stroke();
+
+				if (chordal.checked) {
+					ctx.strokeStyle = 'orange';
+					ctx.lineWidth = 3;
+					ctx.beginPath();
+					curve.centripetal = true;
+					curve.chordal = true;
+					for (var i=0;i<=DIVISONS;i++) {
+						point = curve.getPoint(i / DIVISONS);
+						if (i==0) ctx.moveTo(point.x, point.y);
+						else ctx.lineTo(point.x, point.y);
+					}
+					ctx.stroke();
+				}
 
 
 
