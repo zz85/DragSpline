@@ -130,11 +130,13 @@
 
 				if (uniform.checked) {
 					// new catmull implementation
+					curve.type = 'catmullrom';
+					tension_value.textContent = curve.tension = tension.value;
+
 					ctx.strokeStyle = 'green';
 					ctx.lineWidth = 3;
 					ctx.beginPath();
-					curve.centripetal = false;
-					tension_value.textContent = curve.tension = tension.value;
+					
 					for (var i=0;i<=DIVISONS;i++) {
 						point = curve.getPoint(i / DIVISONS);
 						if (i==0) ctx.moveTo(point.x, point.y);
@@ -144,11 +146,11 @@
 				}
 
 				if (centripetal.checked) {
+					curve.type = 'centripetal';
+
 					ctx.strokeStyle = 'purple';
 					ctx.lineWidth = 3;
 					ctx.beginPath();
-					curve.centripetal = true;
-					curve.chordal = false;
 					for (var i=0;i<=DIVISONS;i++) {
 						point = curve.getPoint(i / DIVISONS);
 						if (i==0) ctx.moveTo(point.x, point.y);
@@ -158,11 +160,12 @@
 				}
 
 				if (chordal.checked) {
+					curve.type = 'chordal';
+
 					ctx.strokeStyle = 'orange';
 					ctx.lineWidth = 3;
 					ctx.beginPath();
-					curve.centripetal = true;
-					curve.chordal = true;
+
 					for (var i=0;i<=DIVISONS;i++) {
 						point = curve.getPoint(i / DIVISONS);
 						if (i==0) ctx.moveTo(point.x, point.y);

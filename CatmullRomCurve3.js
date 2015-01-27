@@ -132,10 +132,11 @@ THREE.CatmullRomCurve3 = ( function() {
 
 			}
 
-			if (this.centripetal) {
+
+			if ( !this.type || this.type === 'centripetal' || this.type === 'chordal' ) {
  
 				// init Centripetal / Chordal Catmull-Rom
-				var pow = this.chordal ? 0.5 : 0.25;
+				var pow = this.type === 'chordal' ? 0.5 : 0.25;
 				var dt0 = Math.pow( p0.distanceToSquared( p1 ), pow );
 				var dt1 = Math.pow( p1.distanceToSquared( p2 ), pow );
 				var dt2 = Math.pow( p2.distanceToSquared( p3 ), pow );
@@ -149,11 +150,13 @@ THREE.CatmullRomCurve3 = ( function() {
 				py.initNonuniformCatmullRom( p0.y, p1.y, p2.y, p3.y, dt0, dt1, dt2 );
 				pz.initNonuniformCatmullRom( p0.z, p1.z, p2.z, p3.z, dt0, dt1, dt2 );
 
-			} else {
+			} else if (this.type === 'catmullrom') {
+
 				var tension = this.tension !== undefined ? this.tension : 0.5;
 				px.initCatmullRom( p0.x, p1.x, p2.x, p3.x, tension );
 				py.initCatmullRom( p0.y, p1.y, p2.y, p3.y, tension );
 				pz.initCatmullRom( p0.z, p1.z, p2.z, p3.z, tension );
+
 			}
 
 			var v = new THREE.Vector3(
