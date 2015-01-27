@@ -1,16 +1,27 @@
 <html>
+<head>
+	<title>Parameterization of Catmull-Rom Curves</title>
+</head>
 <body>
+	<h3>Parameterization of Catmull-Rom Curves</h3>
 	<div>
 		<input type="checkbox" id="spline" /> SplineCurve<br />
 		<input type="checkbox" id="uniform" checked /> <label for="uniform">Uniform Catmull-rom</label>  <input type="range" id="tension" min=0 max=1 step=0.01 value=0.5 /> <span id="tension_value"/></span> <br />
-		<input type="checkbox" id="centripetal" /> Centripetal Catmull-rom<br />
-		<input type="checkbox" id="chordal" /> Chordal Catmull-rom<br />
+		<input type="checkbox" id="centripetal" checked /> Centripetal Catmull-rom<br />
+		<input type="checkbox" id="chordal" checked /> Chordal Catmull-rom<br />
+
 
 	</div>
+
 	<div id="info"></div>
+	(double click to add or remove points)
 	<style>
 	canvas {
 		border: 1px solid #ddd;
+	}
+
+	body {
+		font-family: sans-serif;
 	}
 	</style>
 	<script>THREE = {}</script>
@@ -24,7 +35,7 @@
 		var info = document.querySelector('#info');
 		var canvas = document.createElement('canvas');
 		canvas.width = 1024;
-		canvas.height = 1024;
+		canvas.height = 768;
 		var DIVISONS = 200;
 
 		var ctx = canvas.getContext('2d');
@@ -39,7 +50,7 @@
 		var curve2 = new THREE.SplineCurve3(points);
 
 		for (i=0; i < 4; i++) {
-			points.push( new THREE.Vector3(Math.random() * canvas.width, Math.random() * canvas.width, 0))
+			points.push( new THREE.Vector3(Math.random() * canvas.width, Math.random() * canvas.height, 0))
 		}
 
 		document.addEventListener('mousemove', function(e) {
@@ -69,6 +80,26 @@
 			// TODO insert new points
 
 			mouseOn = point;
+
+			needRedraw = true;
+
+		});
+
+		document.addEventListener('dblclick', function(e) {
+
+			console.log('double click')
+
+			var point = detectHit(e.offsetX, e.offsetY);
+
+			if (point) {
+				if (points.length > 4) {
+					points.splice( points.indexOf(point), 1 );
+				}
+			} else {
+				points.push( new THREE.Vector3(e.offsetX, e.offsetY, 0))
+			}
+
+			// mouseOn = point;
 
 			needRedraw = true;
 
