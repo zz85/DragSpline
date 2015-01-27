@@ -68,7 +68,9 @@ THREE.CatmullRomCurve3 = ( function() {
 
 	// standard Catmull-Rom spline: interpolate between x1 and x2 with previous/following points x1/x4
 	CubicPoly.prototype.initCatmullRom = function( x0, x1, x2, x3, tension ) {
+
 		this.init( x1, x2, tension * ( x2 - x0 ), tension * ( x3 - x1 ) );
+
 	};
 
 	CubicPoly.prototype.calc = function( t ) {
@@ -136,7 +138,7 @@ THREE.CatmullRomCurve3 = ( function() {
 			}
 
 
-			if ( !this.type || this.type === 'centripetal' || this.type === 'chordal' ) {
+			if ( this.type === undefined || this.type === 'centripetal' || this.type === 'chordal' ) {
  
 				// init Centripetal / Chordal Catmull-Rom
 				var pow = this.type === 'chordal' ? 0.5 : 0.25;

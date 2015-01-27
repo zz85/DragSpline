@@ -12,7 +12,8 @@
 		<input type="checkbox" id="centripetal" checked /> Centripetal Catmull-rom<br />
 		<input type="checkbox" id="chordal" checked /> Chordal Catmull-rom<br />
 
-
+		<!-- TODO insert point on a spline  -->
+		<!-- TODO work on mobile devices  -->
 	</div>
 
 	
@@ -81,8 +82,6 @@
 
 			var point = detectHit(e.offsetX, e.offsetY);
 
-			// TODO insert new points
-
 			mouseOn = point;
 
 			needRedraw = true;
@@ -91,7 +90,7 @@
 
 		document.addEventListener('dblclick', function(e) {
 
-			console.log('double click')
+			// console.log('double click')
 
 			var point = detectHit(e.offsetX, e.offsetY);
 
@@ -100,7 +99,14 @@
 					points.splice( points.indexOf(point), 1 );
 				}
 			} else {
-				points.push( new THREE.Vector3(e.offsetX, e.offsetY, 0))
+				var hit = detectHitOnPath(e.offsetX, e.offsetY);
+
+				if (hit > -1) {
+					points.splice( hit + 1, 0, new THREE.Vector3(e.offsetX, e.offsetY, 0))
+				} else {
+					points.push( new THREE.Vector3(e.offsetX, e.offsetY, 0))	
+				}
+				
 			}
 
 			// mouseOn = point;
@@ -132,7 +138,30 @@
 			}
 
 			return null;
-		}		
+		}
+
+		function detectHitOnPath(x, y) {
+			var segments = points.length - 1;
+			var divisions = 20;
+			ctx.lineWidth = 10;
+			for (var i=0;i<segments;i++) {
+
+				ctx.beginPath();
+				
+				for (var j = 0; j <= divisions; j++) {
+					var at = curve.getPoint(i / segments + j / segments / divisions);
+
+					if (j==0) ctx.moveTo(at.x, at.y);
+					else ctx.lineTo(at.x, at.y);
+				}
+
+				if (ctx.isPointInStroke(x, y)) {
+					return i;
+				}
+			}
+
+			return -1;
+		}
 
 		function draw() {
 
